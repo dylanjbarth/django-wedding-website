@@ -21,6 +21,7 @@ VENV_PYTHON = os.path.join(CODE_DIR, '.env/bin/python')
 VENV_PIP = os.path.join(CODE_DIR, '.env/bin/pip3')
 ACTIVATE_PATH = os.path.join(VENV_PATH, 'bin/activate')
 REQUIREMENTS = os.path.join(CODE_DIR, "requirements.txt")
+STATIC_ROOT = "/var/www/dylanandalex.love/"
 REPO = "https://github.com/dylanjbarth/django-wedding-website"
 
 @task
@@ -36,6 +37,8 @@ def update_packages(c):
 def update_code(c):
     if not c.run(f"sudo test -d {CODE_DIR}", warn=True):
         c.run(f"sudo git clone {REPO} {CODE_DIR}")
+    c.run(f"cd {CODE_DIR} && sudo git fetch origin")
+    c.run(f"cd {CODE_DIR} && sudo git reset --hard origin/master")
     c.run(f"cd {CODE_DIR} && sudo git pull")
     with open('./bigday/localsettings.py.prod', 'r') as rf:
         data = rf.read()
@@ -57,7 +60,9 @@ def migrate(c):
 
 @task
 def collect_static(c):
-    c.run(f"cd {CODE_DIR} && sudo {VENV_PYTHON} manage.py collectstatic")
+    if not c.run(f"sudo test -d {STATIC_ROOT}", warn=True):
+        c.run(f"sudo mkdir -p {STATIC_ROOT}")
+    c.run(f"cd {CODE_DIR} && sudo {VENV_PYTHON} manage.py collectstatic --noinput --clear")
 
 @task
 def configure_gunicorn(c):
@@ -92,6 +97,7 @@ def deploy_full(c):
 def deploy(c):
     update_code(c)
     update_venv(c)
+    collect_static(c)
     migrate(c)
     configure_gunicorn(c)
     configure_nginx(c)
