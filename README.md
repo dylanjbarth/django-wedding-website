@@ -114,7 +114,7 @@ Searching for the text on a page in the repository is a great way to find where 
 
 ### Sending email
 
-This application uses Django's email framework for sending mail. 
+This application uses Django's email framework for sending mail.
 You need to modify the `EMAIL_HOST`, `EMAIL_PORT` and other associated variables in `settings.py` in order
 to hook it into a real server.
 
@@ -135,3 +135,10 @@ I haven't built out more complete customization docs yet because I wasn't sure a
 but will add to these instructions whenever I get questions!
 
 -Cory
+
+
+### Deployment
+
+- `fab --hosts 'weddingserver' deploy`
+- `fab --hosts 'weddingserver' set-dev-mode`
+- `fab --hosts 'weddingserver' unset-dev-mode`
