@@ -3,6 +3,11 @@
 {% block page_head %}
     <!-- Custom CSS -->
     <link href="{% static 'bigday/css/creative.css' %}" rel="stylesheet">
+    <style>
+        .album-art {
+            max-height: 100px;
+        }
+    </style>
 {% endblock %}
 {% block page_content %}
     {% include 'partials/navigation.html' %}
@@ -24,10 +29,29 @@
 {% endblock %}
 {% block page_js %}
     <!-- Handlebars -->
-    <script src="{% static 'creative/js/handlebars.runtime-v4.1.2.js' %}"></script>
+    <script src="{% static 'creative/js/handlebars-v4.1.2.js' %}"></script>
+    {% verbatim %}
+        <script id="spotifyResultTemplate" type="text/x-handlebars-template">
+            <li>
+                <div class="media">
+                    <div class="media-left">
+                        <a href="{{ album.external_urls.spotify }}" target="_blank">
+                            <img class="album-art" src="{{ album.images.0.url }}" alt="{{ album.name }}"/>
+                        </a>
+                    </div>
+                    <div class="media-body">
+                        <h4 class="media-heading"><a href="{{ external_urls.spotify }}" target="_blank">{{ name }}</a></h4>
+                        <p>by {{#each artists}}<a href="{{this.external_urls.spotify}}" target="_blank">{{this.name}}</a>{{#unless @last}} &amp; {{/unless}}{{/each}}</p>
+                    </div>
+                </div>
+            </li>
+        </script>
+    {% endverbatim %}
     <script type="text/javascript">
         var debounceTimeout;
         var debounceMs = 250;
+        var source = document.getElementById('spotifyResultTemplate').innerHTML;
+        var template = Handlebars.compile(source);
         var sendSearch = function(query) {
             var xhr = new XMLHttpRequest();
             xhr.open('GET', '/song-requests/search/?q=' + encodeURIComponent(query))
@@ -35,14 +59,11 @@
             xhr.onload = function() {
                 var resultContainer = document.getElementById('searchResults');
                 var resultJSON = JSON.parse(xhr.responseText);
-                var resultList = document.createElement('ul');
-                resultJSON.tracks.items.forEach(item => {
-                    var li = document.createElement('li')
-                    li.innerHTML = item.name
-                    resultList.appendChild(li)
-                })
-                resultContainer.innerHTML = '';
-                resultContainer.appendChild(resultList);
+                var resultList = resultJSON.tracks.items.map(function(item) {
+                    console.log(item);
+                    return template(item);
+                }).join('')
+                resultContainer.innerHTML = '<ul>' + resultList +'</ul>'
             }
             xhr.send();
         }
