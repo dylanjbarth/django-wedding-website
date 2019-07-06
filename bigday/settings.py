@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'guests.apps.GuestsConfig',
+    'song_requests.apps.SongRequestsConfig',
 ]
 
 MIDDLEWARE = [
@@ -143,6 +144,11 @@ WEDDING_CC_LIST = []  # put email addresses here if you want to cc someone on al
 
 # change to a real email backend in production
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+
+# For song song_requests
+SPOTIPY_CLIENT_ID = ''
+SPOTIPY_CLIENT_SECRET = ''
 
 try:
     from .localsettings import *

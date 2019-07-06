@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block page_head %}
+    <!-- Custom CSS -->
+    <link href="{% static 'bigday/css/creative.css' %}" rel="stylesheet">
+{% endblock %}
+{% block page_content %}
+    {% include 'partials/navigation.html' %}
+    {% block main %}
+    <main class="nav-spacer">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12">
+                    <p>You better dance...</p>
+                    <input id="searchInput" type="text" oninput="searchInputChanged(this.value)">
+                </div>
+                <div class="col-xs-12" id="searchResults">
+                    {# Search results injected here #}
+                </div>
+            </div>
+        </div>
+    </main>
+    {% endblock %}
+{% endblock %}
+{% block page_js %}
+    <!-- Handlebars -->
+    <script src="{% static 'creative/js/handlebars.runtime-v4.1.2.js' %}"></script>
+    <script type="text/javascript">
+        var debounceTimeout;
+        var debounceMs = 250;
+        var sendSearch = function(query) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/song-requests/search/?q=' + encodeURIComponent(query))
+            xhr.setRequestHeader('Accept', 'application/json')
+            xhr.onload = function() {
+                var resultContainer = document.getElementById('searchResults');
+                var resultJSON = JSON.parse(xhr.responseText);
+                var resultList = document.createElement('ul');
+                resultJSON.tracks.items.forEach(item => {
+                    var li = document.createElement('li')
+                    li.innerHTML = item.name
+                    resultList.appendChild(li)
+                })
+                resultContainer.innerHTML = '';
+                resultContainer.appendChild(resultList);
+            }
+            xhr.send();
+        }
+        var searchInputChanged = function(value) {
+            console.log(value)
+            if (debounceTimeout) {
+                clearTimeout(debounceTimeout)
+            }
+            debounceTimeout = setTimeout(function() {
+                var val = document.getElementById('searchInput').value
+                if (val) {
+                    sendSearch(val)
+                }
+            }, debounceMs)
+        };
+        document.getElementById('searchInput').focus();
+    </script>
+
+    <!-- Plugin JavaScript -->
+    <!-- Easing is for the vertical scroll animations -->
+    <script src="{% static 'creative/js/jquery.easing.min.js' %}"></script>
+    <!-- Automatically fit text based on screen size.-->
+    <script src="{% static 'creative/js/jquery.fittext.js' %}"></script>
+    <!-- Custom Theme JavaScript -->
+    <script src="{% static 'creative/js/creative.js' %}"></script>
+{% endblock %}
