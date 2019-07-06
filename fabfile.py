@@ -30,8 +30,13 @@ def systemctl(c, command):
 
 @task
 def update_packages(c):
-    c.run(f"sudo apt-get update && sudo apt-get -y upgrade")
-    c.run(f"sudo apt-get install -y python3-pip python3-venv build-essential libssl-dev libffi-dev python-dev nginx")
+    c.sudo("apt-get update")
+    c.sudo("apt-get -y upgrade")
+    c.sudo("apt-get install -y python3-pip python3-venv build-essential libssl-dev libffi-dev python-dev nginx software-properties-common")
+    c.sudo("add-apt-repository universe")
+    c.sudo("add-apt-repository ppa:certbot/certbot")
+    c.sudo("apt-get update")
+    c.sudo("apt-get install -y certbot python-certbot-nginx")
 
 @task
 def update_code(c):
@@ -81,6 +86,12 @@ def configure_nginx(c):
         c.run(f"sudo ln -s /etc/nginx/sites-available/gunicorn /etc/nginx/sites-enabled/")
     systemctl(c, 'restart nginx')
 
+# @task
+# def configure_certbot(c):
+# https://certbot.eff.org/lets-encrypt/ubuntubionic-nginx
+# sudo certbot --nginx
+# One time setup
+
 @task
 def set_dev_mode(c):
     c.put('./deploy/under_construction.html')
@@ -90,21 +101,13 @@ def set_dev_mode(c):
 def unset_dev_mode(c):
     c.run(f"sudo rm /var/www/dylanandalex.love/under_construction.html")
 
-
-@task
-def deploy_full(c):
-    update_packages(c)
-    update_code(c)
-    update_venv(c)
-    migrate(c)
-    configure_gunicorn(c)
-    configure_nginx(c)
-
 @task
 def deploy(c):
+    update_packages(c)
     update_code(c)
     update_venv(c)
     collect_static(c)
     migrate(c)
     configure_gunicorn(c)
     configure_nginx(c)
+    # configure_certbot(c)
